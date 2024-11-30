@@ -1,0 +1,31 @@
+name: Get Installation ID
+
+on:
+  workflow_dispatch: # 수동으로 워크플로우를 실행할 수 있도록 설정
+
+jobs:
+  get-installation-id:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get Installation ID
+        id: get_id
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const installations = await github.rest.apps.listInstallationsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            if (installations.data.length === 0) {
+              throw new Error("No installations found for this repository.");
+            }
+            const installationId = installations.data[0].id;
+            console.log(`Installation ID: ${installationId}`);
+            return installationId;
+
+      - name: Output Installation ID
+        run: echo "Installation ID is ${{ steps.get_id.outputs.result }}"
